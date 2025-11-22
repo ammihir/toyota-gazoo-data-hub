@@ -1,3 +1,26 @@
+#IGNORING DATA FILES
+/barber-motorsports-park
+/race_field_out
+/add_predicted_target.ipynb_checkpoints
+best_xgb.pkl 
+
+final_race_merged.csv
+race_canvas.json
+race_canvas3.json
+
+race_sim.py
+race_summary.csv
+race_unified.parquet
+
+viewer.html
+viewer2.html
+wind_analysis_validation.ipynb
+wind_analysis.ipynb
+wind_modeling.ipynb
+wind_pipeline_1.ipynb
+wind_pipeline_2.ipynb
+/simulation-data/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

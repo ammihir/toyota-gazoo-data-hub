@@ -1,0 +1,367 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Race Sketch (CPU Canvas) + Live Metrics</title>
+  <style>
+    html, body { margin:0; height:100%; background:#0b0e13; color:#e8eaed; font-family:system-ui, sans-serif; }
+    #ui { position:fixed; top:12px; left:12px; right:12px; display:flex; gap:12px; align-items:center; z-index:10; }
+    #ui select, #ui input[type=range] { background:#12151b; color:#e8eaed; border:1px solid #2b3240; border-radius:6px; padding:6px; }
+    #wrap { position:absolute; top:0; left:0; bottom:0; right:344px; } /* <- reserves space for metrics (width + gap) */
+    canvas { width:100%; height:100%; display:block; }
+    .pill { padding:6px 10px; border:1px solid #2b3240; border-radius:999px; cursor:pointer; }
+    .pill.on { background:#1f2633; }
+
+    /* Bottom-left docked Cars selector */
+    .cars-dock {
+      position: fixed; bottom: 12px; left: 12px; z-index: 20;
+      background: rgba(15,19,26,.85); border: 1px solid #2b3240; border-radius: 10px;
+      padding: 10px; backdrop-filter: blur(6px);
+    }
+    .cars-dock label { display: flex; align-items: center; gap: 8px; }
+    .cars-dock select {
+      min-width: 220px; max-height: 180px; overflow: auto;
+      background: #12151b; color: #e8eaed; border: 1px solid #2b3240; border-radius: 6px; padding: 6px;
+    }
+
+    /* Right-side live metrics panel */
+    .metrics-panel{
+    position:fixed; top:84px; right:12px; bottom:12px; width:320px;
+    z-index:20; overflow:auto;
+    background:rgba(15,19,26,.85); border:1px solid #2b3240; border-radius:10px;
+    padding:12px; backdrop-filter:blur(6px);
+    }
+    .metrics-panel h3{ margin:0 0 8px 0; font-size:14px; font-weight:600; opacity:.9 }
+    .metrics-car{ margin-bottom:12px; border:1px solid #2b3240; border-radius:8px; padding:8px }
+    .metrics-car .tag{ display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid #2b3240; font-size:12px; margin-bottom:6px }
+    .kv{ display:grid; grid-template-columns: 1fr 1fr; gap:6px 10px; font-size:12px }
+    .kv div{ border-bottom:1px dashed #2b3240; padding:2px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .kv b{ float:right; font-weight:600 }
+
+
+    /* this for the target speed */
+    .metrics-car{ position:relative; }
+    .tag-right{ position:absolute; top:8px; right:8px; }
+
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <label>Session <select id="session"></select></label>
+
+    <span class="pill" id="play">▶ Play</span>
+    <input id="time" type="range" min="0" max="60" step="0.05" value="0" style="flex:1">
+    <label>Trail <input id="trail" type="range" min="5" max="240" step="5" value="90"></label>
+
+    <label><input id="labels" type="checkbox" checked> Labels</label>
+  </div>
+
+  <div id="wrap"><canvas id="c"></canvas></div>
+
+  <!-- Bottom-left docked Cars selector -->
+  <div id="carsDock" class="cars-dock">
+    <label>Cars
+      <select id="cars" multiple size="8"></select>
+    </label>
+  </div>
+
+  <!-- Right metrics panel -->
+  <div id="metrics" class="metrics-panel">
+    <h3>Live Metrics</h3>
+    <div id="metricsBody"></div>
+  </div>
+
+<script>
+/* ---------- Small helpers ---------- */
+
+// helper for target speed
+function getTargetSpeed(car, i){
+  const m = car.metrics || {};
+  let arr = m.target || m.bench_speed_kph || m.target_speed || m.bench_nowind_kph;
+  if (arr == null) return null;
+  if (!Array.isArray(arr)) return arr;                      // handle scalar
+  return arr[Math.min(i, Math.max(0, arr.length-1))];       // array
+}
+
+
+function lapAt(car, t){
+  if (!car.lap_t || !car.lap_v || car.lap_t.length === 0) return null;
+  const A = car.lap_t;
+  let lo = 0, hi = A.length - 1, ans = 0;
+  if (t < A[0]) return car.lap_v[0];
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (A[mid] <= t) { ans = mid; lo = mid + 1; } else { hi = mid - 1; }
+  }
+  return car.lap_v[ans];
+}
+function lerp(a,b,t){ return a+(b-a)*t; }
+function idxAtOrBefore(T, t){
+  if (!T || !T.length) return 0;
+  if (t <= T[0]) return 0;
+  let lo=0, hi=T.length-1, ans=0;
+  while (lo<=hi){
+    const mid=(lo+hi)>>1;
+    if (T[mid] <= t){ ans=mid; lo=mid+1; } else { hi=mid-1; }
+  }
+  return ans;
+}
+function safeVal(v){
+  if (v === null || v === undefined || v === "" || Number.isNaN(v)) return "–";
+  if (typeof v === "number") {
+    // Pretty-print numbers: integers as-is, floats to 2dp; large floats to 1dp
+    if (Number.isInteger(v)) return String(v);
+    return Math.abs(v) >= 1000 ? v.toFixed(1) : v.toFixed(2);
+  }
+  return String(v);
+}
+
+/* ---------- State ---------- */
+const COLORS = [
+  [240, 82, 82],   // red
+  [16, 185, 129],  // green
+  [59, 130, 246],  // blue
+  [245, 158, 11],  // amber
+  [139, 92, 246],  // violet
+  [234, 88, 12],   // orange
+  [236, 72, 153],  // pink
+  [34, 197, 94]    // emerald
+];
+
+
+
+let DATA=null, sessKey=null, selCars=[], playing=false, tNow=0, duration=0;
+
+const $ = id => document.getElementById(id);
+const sessSel = $("session"), carsSel = $("cars"), timeR = $("time"), trailR = $("trail"), playBtn = $("play");
+const labelsChk = $("labels");
+const metricsBody = $("metricsBody");
+const wrap = $("wrap");
+const panel = $("metrics");
+
+/* If you later change panel width in CSS, this keeps canvas sized correctly */
+function reserveRight() {
+  const gap = 24; // visually matches top/right margins
+  wrap.style.right = (panel?.offsetWidth ?? 0) + gap + 'px';
+  fit();
+}
+window.addEventListener('resize', reserveRight);
+
+/* ---------- Metrics rendering ---------- */
+const PREFERRED_KEYS = ["speed","gear","aps","nmot","accx_can","accy_can","pbrake_f","pbrake_r","Laptrigger_lapdist_dls"];
+function pickMetricKeys(metrics){
+  if (!metrics) return [];
+  const keys = Object.keys(metrics);
+  const ordered = PREFERRED_KEYS.filter(k => keys.includes(k));
+  const extras  = keys.filter(k => !ordered.includes(k)).slice(0, Math.max(0, 10 - ordered.length));
+  return ordered.concat(extras).slice(0, 10);
+}
+function renderMetrics(sess, tNow){
+  const rows = [];
+  selCars.forEach((vid, idx) => {
+    const car = sess.cars[vid];
+    if (!car) return;
+
+    const i = idxAtOrBefore(car.t, tNow);
+    const col = COLORS[idx % COLORS.length];
+    const chip = `style="border-color: rgba(${col[0]},${col[1]},${col[2]},.6); color: rgb(${col[0]},${col[1]},${col[2]})"`;
+    const tgt = getTargetSpeed(car, i);
+    const tgtHTML = (tgt!=null)
+      ? `<div class="tag tag-right" ${chip}>Target ${safeVal(tgt)} kph</div>`
+      : "";
+
+
+    let kv = "";
+    if (car.metrics){
+      const keys = pickMetricKeys(car.metrics);
+      keys.forEach(k => {
+        const arr = car.metrics[k] || [];
+        const val = safeVal(arr[Math.min(i, Math.max(0, arr.length-1))]);
+        kv += `<div title="${k}">${k}<b>${val}</b></div>`;
+      });
+    } else {
+      kv = `<div>No metrics in JSON for this car.</div>`;
+    }
+
+    const lapNum = lapAt(car, tNow);
+    const lapTag = (lapNum != null) ? ` • L${lapNum}` : "";
+
+    rows.push(`
+      <div class="metrics-car">
+        <div class="tag" ${chip}>Car ${vid}${lapTag}</div>
+        ${tgtHTML}
+        <div class="kv">${kv}</div>
+      </div>
+    `);
+  });
+  metricsBody.innerHTML = rows.join("") || "<div class='metrics-car'>Select one or more cars to view metrics.</div>";
+}
+
+/* ---------- Canvas drawing ---------- */
+const canvas = $("c"), ctx = canvas.getContext("2d");
+function fit() {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+window.addEventListener("resize", fit);
+
+/* ---------- Data load & UI ---------- */
+fetch("race_canvas3.json").then(r=>r.json()).then(j => {
+  DATA = j;
+  // sessions
+  const sessKeys = Object.keys(DATA.sessions);
+  sessSel.innerHTML = sessKeys.map(k=>`<option value="${k}">${k}</option>`).join("");
+  sessKey = sessSel.value || sessKeys[0];
+
+  populateCars();
+  setupTime();
+  reserveRight(); // ensure canvas space is reserved for panel
+  fit();
+  requestAnimationFrame(loop);
+});
+
+function populateCars() {
+  const cars = Object.keys(DATA.sessions[sessKey].cars);
+  carsSel.innerHTML = cars.map(c => `<option selected>${c}</option>`).join("");
+  selCars = cars.slice(0, Math.min(4, cars.length)); // default to first 4
+  renderMetrics(DATA.sessions[sessKey], tNow);
+
+  carsSel.onchange = () => {
+    selCars = Array.from(carsSel.selectedOptions).map(o => o.value);
+    renderMetrics(DATA.sessions[sessKey], tNow);
+  };
+}
+sessSel.addEventListener("change", ()=>{
+  sessKey = sessSel.value;
+  populateCars();
+  setupTime();
+  renderMetrics(DATA.sessions[sessKey], tNow);
+  fit();
+});
+
+function setupTime() {
+  const cars = DATA.sessions[sessKey].cars;
+  duration = Math.max(...Object.values(cars).map(v => (v.t && v.t.length) ? v.t[v.t.length-1] : 0));
+  timeR.max = isFinite(duration) ? duration.toFixed(2) : "60";
+  tNow = 0; timeR.value = "0";
+}
+
+timeR.addEventListener("input", ()=>{
+  tNow = parseFloat(timeR.value);
+  playing=false; playBtn.classList.remove("on");
+  renderMetrics(DATA.sessions[sessKey], tNow);
+});
+playBtn.addEventListener("click", ()=>{
+  playing = !playing;
+  playBtn.classList.toggle("on", playing);
+  playBtn.textContent = playing ? "⏸ Pause" : "▶ Play";
+});
+
+function sampleAt(car, t) {
+  const T = car.t, X = car.x, Y = car.y;
+  if (!T || !T.length) return {x:0,y:0};
+  if (t<=T[0]) return {x:X[0], y:Y[0]};
+  if (t>=T[T.length-1]) return {x:X[X.length-1], y:Y[Y.length-1]};
+  let i = Math.max(1, T.findIndex(v=>v>=t));
+  if (i<0) i=T.length-1;
+  const t0=T[i-1], t1=T[i];
+  const u = (t - t0) / Math.max(1e-6, (t1 - t0));
+  return {x: lerp(X[i-1], X[i], u), y: lerp(Y[i-1], Y[i], u)};
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const sess = DATA.sessions[sessKey];
+  const allCars = Object.values(sess.cars);
+  const xs = allCars.flatMap(c=>c.x||[]), ys = allCars.flatMap(c=>c.y||[]);
+  if (!xs.length || !ys.length) return;
+
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const pad = 30;
+  const scale = 0.95 * Math.min((w-2*pad)/(maxX-minX+1e-3), (h-2*pad)/(maxY-minY+1e-3));
+  const offX = (w - scale*(minX+maxX))/2;
+  const offY = (h - scale*(minY+maxY))/2;
+
+
+// faint full-track background (all cars, light alpha)
+  ctx.save();
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.15;
+  ctx.strokeStyle = "#9aa4b2";
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  allCars.forEach(car => {
+    const T = car.t || [], X = car.x || [], Y = car.y || [];
+    if (!X.length || !Y.length) return;
+
+    ctx.beginPath();
+    let x = offX + X[0]*scale, y = offY + Y[0]*scale;
+    ctx.moveTo(x, y);
+    for (let i = 1; i < X.length; i++) {
+      x = offX + X[i]*scale; y = offY + Y[i]*scale;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  });
+  ctx.restore();
+
+
+
+  // selected cars: trail + current
+  const trail = parseFloat(trailR.value);
+  selCars.forEach((vid, idx)=>{
+    const car = sess.cars[vid]; if (!car || !car.t || !car.t.length) return;
+    const t0 = Math.max(0, tNow - trail);
+    ctx.lineWidth = 2; const col = COLORS[idx % COLORS.length]; ctx.strokeStyle = `rgb(${col[0]},${col[1]},${col[2]})`;
+    ctx.beginPath();
+    const T=car.t, X=car.x, Y=car.y;
+    let s = 0; while (s < T.length && T[s] < t0) s++;
+    if (s>0) s--;
+    for (let i=s; i<T.length && T[i] <= tNow; i+=1){
+      const x = offX + X[i]*scale, y = offY + Y[i]*scale;
+      if (i===s) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+
+    const p = sampleAt(car, tNow);
+    const cx = offX + p.x*scale, cy = offY + p.y*scale;
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
+
+    if (labelsChk && labelsChk.checked) {
+      const lapNum = lapAt(car, tNow);
+      const label  = (lapNum != null) ? `${vid} • L${lapNum}` : String(vid);
+      ctx.font = "12px system-ui, sans-serif";
+      ctx.textBaseline = "middle";
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(0,0,0,0.75)";
+      ctx.strokeText(label, cx + 8, cy);
+      ctx.fillStyle = ctx.strokeStyle = `rgb(${col[0]},${col[1]},${col[2]})`;
+      ctx.fillText(label, cx + 8, cy);
+    }
+  });
+}
+
+/* ---------- Main loop ---------- */
+let last=performance.now();
+function loop(now){
+  if (playing){
+    const dt=(now-last)/1000; last=now;
+    tNow = Math.min(tNow + dt, duration);
+    timeR.value = tNow.toFixed(2);
+  } else {
+    last=now;
+  }
+  draw();
+  renderMetrics(DATA.sessions[sessKey], tNow);
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
