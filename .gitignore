@@ -25,6 +25,11 @@ simulation-data/*
 !simulation-data/.gitignore
 !simulation-data/.gitkeep
 
+
+zz_troubleshoot.ipynb
+export_for_canvas.py
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
