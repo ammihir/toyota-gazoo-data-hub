@@ -19,6 +19,8 @@ wind_modeling.ipynb
 wind_pipeline_1.ipynb
 wind_pipeline_2.ipynb
 simulation-data/*
+!simulation-data/.gitignore
+!simulation-data/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
