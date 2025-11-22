@@ -18,7 +18,7 @@ wind_analysis.ipynb
 wind_modeling.ipynb
 wind_pipeline_1.ipynb
 wind_pipeline_2.ipynb
-/simulation-data/*
+simulation-data/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
