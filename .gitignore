@@ -13,7 +13,6 @@ race_summary.csv
 race_unified.parquet
 
 viewer.html
-viewer2.html
 wind_analysis_validation.ipynb
 wind_analysis.ipynb
 wind_modeling.ipynb
