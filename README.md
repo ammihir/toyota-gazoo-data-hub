@@ -27,6 +27,7 @@ export_for_simulation.ipynb
     
 Front End
 Viewer2.html simulates the run
+
     Renders race_canvas.json to simulate the races at Barber circuit. 
 
 
