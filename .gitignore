@@ -1,7 +1,7 @@
 #IGNORING DATA FILES
 barber-motorsports-park/*
-!simulation-data/.gitignore
-!simulation-data/.gitkeep
+!barber-motorsports-park/.gitignore
+!barber-motorsports-park/.gitkeep
 
 /race_field_out
 /add_predicted_target.ipynb_checkpoints
