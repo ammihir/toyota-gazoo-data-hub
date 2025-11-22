@@ -1,5 +1,5 @@
 #IGNORING DATA FILES
-/barber-motorsports-park
+barber-motorsports-park/*
 /race_field_out
 /add_predicted_target.ipynb_checkpoints
 best_xgb.pkl 
