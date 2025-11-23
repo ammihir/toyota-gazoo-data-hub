@@ -32,6 +32,8 @@ export_for_canvas.py
 eda-1.ipynb
 eda-2.ipynb
 eda-3.ipynb
+export_for_simulation_wind.ipynb
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -32,11 +32,5 @@ Viewer2.html simulates the run
 
 
 
-RaceSim v2:
-export_for_simulation_wind.ipynb - This script also takes into consideration the wind factor
-to predict the target speed for the cars.
-parquet = common3.parquet
-race_canvas3.json
-Viewer 3 is the html to simulate the run
 
 
