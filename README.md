@@ -2,9 +2,9 @@
 
 
 ![RaceSim Logo](logo-small.png)
-<p align="center">
-  <img src="logo-small.png" width="250" />
-</p>
+    <p align="center">
+    <img src="logo-small.png" width="550" />
+    </p>
 
 
 
