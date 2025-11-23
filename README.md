@@ -23,7 +23,7 @@
     Notebook: race_sim.ipynb
     JOIN endurance + telemetry data → produces common.parquet
 
-    *Note: Endurance data has no records for car IDs 0, 16, 78, so these cars are excluded from RaceSim*
+*Note: Endurance data has no records for car IDs 0, 16, 78, so these cars are excluded from RaceSim*
 
 ⚙️ **Data Processing**
 
@@ -35,7 +35,7 @@
 
     Reads common2.parquet → optionally down-samples if telemetry is too granular → outputs race_canvas.json
 
-    This JSON is consumed by the RaceSim front-end to simulate the race.
+*This JSON is consumed by the RaceSim front-end to simulate the race.*
 
 🎥 **Front-End Race Viewer**
 
@@ -49,5 +49,5 @@
     Then open:
     http://localhost:8000/viewer2.html
 
-    Car Selection
-    Use Ctrl + Click to select multiple cars in the viewer.
+*Car Selection*
+*Use Ctrl + Click to select multiple cars in the viewer.*
