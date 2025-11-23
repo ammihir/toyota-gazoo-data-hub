@@ -32,16 +32,18 @@
     Reads common.parquet → fills missing values → writes common2.parquet
 
     Step 2 - Export for Viewer
-
     Reads common2.parquet → optionally down-samples if telemetry is too granular → outputs race_canvas.json
 
 *race_canvas JSON is consumed by the RaceSim front-end to simulate the race.*
 
-🎥 **Front-End Race Viewer**
+🎥 **Front-End Race Simulator**
 
     File: viewer2.html
 
-    Visualizes the race by rendering race_canvas.json onto a high-performance canvas, simulating car motion, lap progression, and live metrics.
+    Simulates the race by rendering race_canvas.json onto a high-performance canvas, visualizing 
+    - car motion
+    - lap progression 
+    - live metrics
 
 🚀 How to Run the Application
 
