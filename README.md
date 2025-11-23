@@ -1,6 +1,10 @@
 # toyota-gazoo-data-hub
 
 
+![RaceSim Logo](logo.png)
+<p align="center">
+  <img src="/mnt/data/A_logo_for_a_racing_simulation_application_named_.png" width="250" />
+</p>
 
 
 
@@ -67,3 +71,5 @@ STEPS FOR RUNNING APPLICATION
     Run the app -> python -m http.server 8000
 
     Open link: http://localhost:8000/viewer2.html 
+
+    To select multiple cars, press cntrl + click on the car number
