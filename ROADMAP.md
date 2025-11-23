@@ -50,5 +50,5 @@ Adjustable playback speeds for coaching
 
 
 <p align="center">
-<img src="assets/target-speed-roadmap.png" width="550" />
+<img src="assets/future-pp.png" width="550" />
 </p>
