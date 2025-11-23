@@ -4,6 +4,21 @@
   <meta charset="utf-8" />
   <title>Race Sketch (CPU Canvas) + Live Metrics</title>
   <style>
+
+
+    /* this is for logo */
+        #brand {
+      display:flex;
+      align-items:center;
+      margin-right:16px;
+    }
+
+    #brand img {
+      height:32px;          /* tweak size as you like */
+      display:block;
+    }
+    /* this is for logo */
+
     html, body { margin:0; height:100%; background:#0b0e13; color:#e8eaed; font-family:system-ui, sans-serif; }
     #ui { position:fixed; top:12px; left:12px; right:12px; display:flex; gap:12px; align-items:center; z-index:10; }
     #ui select, #ui input[type=range] { background:#12151b; color:#e8eaed; border:1px solid #2b3240; border-radius:6px; padding:6px; }
@@ -40,15 +55,25 @@
   </style>
 </head>
 <body>
+
+<!-- this is for new logo -->
   <div id="ui">
-    <label>Session <select id="session"></select></label>
-
-    <span class="pill" id="play">▶ Play</span>
-    <input id="time" type="range" min="0" max="60" step="0.05" value="0" style="flex:1">
-    <label>Trail <input id="trail" type="range" min="5" max="240" step="5" value="90"></label>
-
-    <label><input id="labels" type="checkbox" checked> Labels</label>
+  <div id="brand">
+    <img
+      src="logo-small.png"
+      alt="RaceSim logo"
+    />
   </div>
+
+  <label>Session <select id="session"></select></label>
+
+  <span class="pill" id="play">▶ Play</span>
+  <input id="time" type="range" min="0" max="60" step="0.05" value="0" style="flex:1">
+  <label>Trail <input id="trail" type="range" min="5" max="240" step="5" value="90"></label>
+
+  <label><input id="labels" type="checkbox" checked> Labels</label>
+</div>
+<!-- this is for new logo -->
 
   <div id="wrap"><canvas id="c"></canvas></div>
 
