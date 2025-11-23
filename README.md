@@ -1,9 +1,9 @@
 # toyota-gazoo-data-hub
 
 
-![RaceSim Logo](logo.png)
+![RaceSim Logo](logo-small.png)
 <p align="center">
-  <img src="/mnt/data/A_logo_for_a_racing_simulation_application_named_.png" width="250" />
+  <img src="logo-small.png" width="250" />
 </p>
 
 
