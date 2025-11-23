@@ -35,7 +35,7 @@
 
     Reads common2.parquet → optionally down-samples if telemetry is too granular → outputs race_canvas.json
 
-*This JSON is consumed by the RaceSim front-end to simulate the race.*
+*race_canvas JSON is consumed by the RaceSim front-end to simulate the race.*
 
 🎥 **Front-End Race Viewer**
 
@@ -43,7 +43,8 @@
 
     Visualizes the race by rendering race_canvas.json onto a high-performance canvas, simulating car motion, lap progression, and live metrics.
 
-    🚀 How to Run the Application
+🚀 How to Run the Application
+
     python -m http.server 8000
 
     Then open:
