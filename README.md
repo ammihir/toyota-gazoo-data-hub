@@ -44,9 +44,11 @@
     - car motion
     - lap progression 
     - live metrics
+    - multi-car comparison
 
 🚀 How to Run the Application
 
+    From the root (the folder that contains `viewer2.html`):
     python -m http.server 8000
 
     Then open:
