@@ -16,8 +16,8 @@
 
 
 📦 **Data Preparation Pipeline**
-    Gather & Join Data
 
+    Gather & Join Data
     Notebook: race_sim.ipynb
 
     JOIN endurance + telemetry data → produces common.parquet
@@ -46,7 +46,7 @@
 
 🎥 **Front-End Race Viewer**
 
-File: viewer2.html
+    File: viewer2.html
 
     Visualizes the race by rendering race_canvas.json onto a high-performance canvas, simulating car motion, lap progression, and live metrics.
 
