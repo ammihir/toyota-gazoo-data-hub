@@ -5,9 +5,15 @@
 </p>
 
 
-RaceSim v1
+<h1 align="center">RaceSim v1</h1>
 
-RaceSim is a telemetry-driven racing visualization tool that joins endurance + telemetry datasets, processes them for consistency, and renders a full lap-by-lap replay of cars around the Barber Motorsports Park circuit.
+<p align="center" style="font-size:16px;">
+  RaceSim is a telemetry-driven racing visualization tool that joins endurance + telemetry datasets, processes them for consistency, and renders a full lap-by-lap replay of cars around the Barber Motorsports Park circuit.
+</p>
+
+
+
+
 
 📦 Data Preparation Pipeline
 1. Gather & Join Data
