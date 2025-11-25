@@ -39,3 +39,10 @@ Upcoming Milestones
 <p align="center">
 <img src="assets/future-app.png" width="550" />
 </p>
+
+
+<p align="center">
+<b>For a sneak peek into the future state, click here: https://ammihir.github.io/toyota-gazoo-data-hub/viewer3.html</b>
+<br>
+<a href="YOUR_LINK_HERE">View Future Prototype</a>
+</p>
