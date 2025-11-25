@@ -42,7 +42,10 @@ Upcoming Milestones
 
 
 <p align="center">
-<b>For a sneak peek into the future state, click here: https://ammihir.github.io/toyota-gazoo-data-hub/viewer3.html</b>
-<br>
-<a href="YOUR_LINK_HERE">View Future Prototype</a>
+  <b>For a sneak peek into the future alpha version, click here:</b><br>
+  <a href="https://ammihir.github.io/toyota-gazoo-data-hub/viewer3.html">
+    https://ammihir.github.io/toyota-gazoo-data-hub/viewer3.html
+  </a>
+  <br><br>
+  <a href="https://ammihir.github.io/toyota-gazoo-data-hub/viewer3.html"><b>View Future Prototype</b></a>
 </p>
