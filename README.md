@@ -56,3 +56,10 @@
 
 *Car Selection*
 *Use Ctrl + Click to select multiple cars in the viewer.*
+
+
+🏁🏎️ Try the current working version:
+https://ammihir.github.io/toyota-gazoo-data-hub/viewer2.html
+
+👀 Sneak peek of the upcoming target-speed intelligence:
+https://ammihir.github.io/toyota-gazoo-data-hub/viewer3.html
